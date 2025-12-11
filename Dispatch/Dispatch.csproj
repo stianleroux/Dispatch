@@ -9,7 +9,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <CodeAnalysisRuleSet>$(ProjectDir)..\StyleCopRuleSet.ruleset</CodeAnalysisRuleSet>
         <RootNamespace>Dispatch</RootNamespace>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
         <PackageId>SLR.Dispatch</PackageId>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/stianleroux/Dispatch</RepositoryUrl>

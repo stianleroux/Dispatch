@@ -82,12 +82,11 @@ jobs:
           echo "PACKAGE_VERSION=$FULL_VERSION" >> $GITHUB_ENV
           echo "version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
-      - name: Build and Package
-        run: |
-          dotnet build Dispatch/Dispatch.csproj --configuration Release /p:Version=${{ env.PACKAGE_VERSION }}
-          mkdir -p ./nuget-packages
-          find Dispatch/bin/Release -name "*.nupkg" -exec cp {} ./nuget-packages/ \;
-          ls -la ./nuget-packages/
+      - name: Build
+        run: dotnet build Dispatch/Dispatch.csproj --configuration Release --no-restore /p:Version=${{ env.PACKAGE_VERSION }}
+
+      - name: Pack NuGet Package
+        run: dotnet pack Dispatch/Dispatch.csproj --configuration Release --no-build --output ./nuget-packages /p:PackageVersion=${{ env.PACKAGE_VERSION }}
 
       - name: Push NuGet Package
         run: dotnet nuget push nuget-packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
