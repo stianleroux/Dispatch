@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>netstandard2.0;net10.0</TargetFrameworks>
+        <LangVersion>preview</LangVersion>
+        <EnablePackageValidation>true</EnablePackageValidation>
+        <Nullable>enable</Nullable>
+        <PublishReadyToRun>true</PublishReadyToRun>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <CodeAnalysisRuleSet>$(ProjectDir)..\StyleCopRuleSet.ruleset</CodeAnalysisRuleSet>
+        <RootNamespace>Dispatch</RootNamespace>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>SLR.Dispatch</PackageId>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/stianleroux/Dispatch</RepositoryUrl>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <Version>0.1.0</Version>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <Authors>Stian Le Roux</Authors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>7035;1591</NoWarn>
+        <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+        <RestoreLockedMode>false</RestoreLockedMode>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
+        <PackageReference Include="Scrutor" Version="7.0.0" />
+        <PackageReference Include="System.Text.Json" Version="10.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md" pack="true" PackagePath="." />
+    </ItemGroup>
+</Project>

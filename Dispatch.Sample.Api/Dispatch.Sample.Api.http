@@ -1,0 +1,23 @@
+@host = http://localhost:5085
+
+# Tools API
+
+### Add Tool
+POST {{host}}/tools
+Content-Type: application/json
+
+{
+	"name": "Debugger"
+}
+
+### List Tools
+GET {{host}}/tools
+Accept: application/json
+
+### Get Tool (InvalidOperationException demo)
+GET {{host}}/tools/00000000-0000-0000-0000-000000000000
+Accept: application/json
+
+### Remove Tool
+DELETE {{host}}/tools/00000000-0000-0000-0000-000000000001
+Accept: application/json

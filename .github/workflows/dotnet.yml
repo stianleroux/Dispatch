@@ -1,0 +1,76 @@
+name: .NET CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "README.md"
+      - "*.md"
+
+jobs:
+  build:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        dotnet: ["10.0.x"]
+        framework:
+          - net10.0
+          - netstandard2.0
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ matrix.dotnet }}
+          cache: true
+          cache-dependency-path: "**/packages.lock.json"
+
+      - name: Clean build
+        run: dotnet clean
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --framework ${{ matrix.framework }}
+
+      - name: Test
+        run: dotnet test --no-build --verbosity normal --framework ${{ matrix.framework }}
+
+  pack:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Pack Dispatch
+        run: |
+          dotnet restore Dispatch/Dispatch.csproj
+          dotnet pack Dispatch/Dispatch.csproj -c Release -o artifacts --no-restore
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts/*.nupkg
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Publish to NuGet
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet restore Dispatch/Dispatch.csproj
+          dotnet pack Dispatch/Dispatch.csproj -c Release -o artifacts --no-restore
+          dotnet nuget push artifacts/*.nupkg --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
