@@ -5,8 +5,8 @@ on:
     branches:
       - main
     paths-ignore:
-      - 'README.md'
-      - '*.md'
+      - "README.md"
+      - "*.md"
   workflow_dispatch:
 
 jobs:
@@ -67,7 +67,7 @@ jobs:
       - name: Get short version from .csproj
         id: get_base_version
         run: |
-          BASE_VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" Results/Results.csproj)
+          BASE_VERSION=$(grep -oPm1 "(?<=<Version>)[^<]+" Dispatch/Dispatch.csproj)
           if echo "$BASE_VERSION" | grep -qi "beta"; then
             SUFFIX="ci$(date +%H%M%S)"  # e.g. ci072512
             FULL_VERSION="${BASE_VERSION}-${SUFFIX}"
@@ -81,7 +81,7 @@ jobs:
         run: dotnet build --configuration Release
 
       - name: Pack NuGet Package
-        run: dotnet pack Results/Results.csproj --no-build --output ./nuget-packages --configuration Release /p:PackageVersion=${{ env.PACKAGE_VERSION }}
+        run: dotnet pack Dispatch/Dispatch.csproj --no-build --output ./nuget-packages --configuration Release /p:PackageVersion=${{ env.PACKAGE_VERSION }}
 
       - name: Push NuGet Package
         run: dotnet nuget push nuget-packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}

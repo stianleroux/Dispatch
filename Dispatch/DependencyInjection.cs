@@ -27,7 +27,9 @@ public static class ServiceCollectionExtensions
                         t.Name.EndsWith("CommandHandler") ||
                         t.Name.EndsWith("QueryHandler") ||
                         t.Name.EndsWith("NotificationHandler") ||
-                        t.Name.EndsWith("ProcessorBehavior")))
+                        t.Name.EndsWith("Behavior") ||
+                        t.Name.EndsWith("Action") ||
+                        t.Name.EndsWith("Handler")))
                 .AsImplementedInterfaces()
                 .WithTransientLifetime());
         }
