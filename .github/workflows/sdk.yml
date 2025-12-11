@@ -78,7 +78,10 @@ jobs:
           echo "version=$FULL_VERSION" >> $GITHUB_OUTPUT
 
       - name: Build
-        run: dotnet build --configuration Release
+        run: dotnet build Dispatch/Dispatch.csproj --configuration Release
+
+      - name: Build Sample API
+        run: dotnet build Dispatch.Sample.Api/Dispatch.Sample.Api.csproj --configuration Release
 
       - name: Pack NuGet Package
         run: dotnet pack Dispatch/Dispatch.csproj --no-build --output ./nuget-packages --configuration Release /p:PackageVersion=${{ env.PACKAGE_VERSION }}
