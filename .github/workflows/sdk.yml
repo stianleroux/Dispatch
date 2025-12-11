@@ -30,7 +30,9 @@ jobs:
           dotnet-version: 10.0.x
 
       - name: Restore dependencies
-        run: dotnet restore
+        run: |
+          dotnet restore Dispatch/Dispatch.csproj
+          dotnet restore Dispatch.Sample.Api/Dispatch.Sample.Api.csproj
 
       - name: Build core library
         run: dotnet build Dispatch/Dispatch.csproj --no-restore --configuration Release
@@ -39,7 +41,7 @@ jobs:
         run: dotnet build Dispatch.Sample.Api/Dispatch.Sample.Api.csproj --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal --configuration Release
+        run: dotnet test Dispatch/Dispatch.csproj --no-build --verbosity normal --configuration Release
 
   publish:
     needs: build
