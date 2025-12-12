@@ -3,6 +3,53 @@
 using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 
+public interface ICommand<TResult>
+{
+}
+
+public interface ICommandHandler<TCommand, TResult>
+    where TCommand : ICommand<TResult>
+{
+    Task<TResult> Handle(TCommand command, CancellationToken ct);
+}
+
+public interface INotification
+{
+}
+
+public interface INotificationHandler<TNotification>
+    where TNotification : INotification
+{
+    Task Handle(TNotification notification, CancellationToken ct);
+}
+
+public interface IPipelineBehavior<TRequest, TResult>
+{
+    Task<TResult> Handle(TRequest request, Func<Task<TResult>> next, CancellationToken ct);
+}
+
+public interface IQuery<TResult>
+{
+}
+
+public interface IQueryHandler<TQuery, TResult>
+    where TQuery : IQuery<TResult>
+{
+    Task<TResult> Handle(TQuery query, CancellationToken ct);
+}
+
+public interface IRequestExceptionAction<TRequest, TException>
+    where TException : Exception
+{
+    Task Execute(TRequest request, TException exception, CancellationToken ct);
+}
+
+public interface IRequestExceptionHandler<TRequest, TResult, TException>
+    where TException : Exception
+{
+    Task<TResult> Handle(TRequest request, TException exception, CancellationToken ct);
+}
+
 public class Dispatcher(IServiceProvider provider)
 {
     public Task<TResult> Send<TCommand, TResult>(TCommand command, CancellationToken ct = default)
