@@ -6,24 +6,19 @@ on:
     paths-ignore:
       - "README.md"
       - "*.md"
+    tags:
+      - "v*"
 
 jobs:
   build:
     runs-on: windows-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        dotnet: ["10.0.x"]
-        framework:
-          - net10.0
-          - netstandard2.0
     steps:
       - uses: actions/checkout@v4
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ matrix.dotnet }}
+          dotnet-version: 10.0.x
           cache: true
           cache-dependency-path: "**/packages.lock.json"
 
@@ -34,10 +29,10 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore --framework ${{ matrix.framework }}
+        run: dotnet build --no-restore --configuration Release
 
       - name: Test
-        run: dotnet test --no-build --verbosity normal --framework ${{ matrix.framework }}
+        run: dotnet test --no-build --verbosity normal --configuration Release
 
   pack:
     needs: build
@@ -48,10 +43,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Restore dependencies
+        run: dotnet restore Dispatch/Dispatch.csproj
       - name: Pack Dispatch
-        run: |
-          dotnet restore Dispatch/Dispatch.csproj
-          dotnet pack Dispatch/Dispatch.csproj -c Release -o artifacts --no-restore
+        run: dotnet pack Dispatch/Dispatch.csproj -c Release -o artifacts --no-restore
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -60,17 +55,27 @@ jobs:
 
   publish:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    needs: pack
     runs-on: windows-latest
+    permissions:
+      packages: write
+      contents: read
     steps:
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: nuget-packages
+          path: artifacts
       - name: Publish to NuGet
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          dotnet restore Dispatch/Dispatch.csproj
-          dotnet pack Dispatch/Dispatch.csproj -c Release -o artifacts --no-restore
-          dotnet nuget push artifacts/*.nupkg --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+          dotnet nuget push artifacts/*.nupkg --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --skip-duplicate
+      - name: Publish to GitHub Packages
+        run: |
+          dotnet nuget push artifacts/*.nupkg --api-key ${{ secrets.GITHUB_TOKEN }} --source https://nuget.pkg.github.com/stianleroux/index.json --skip-duplicate

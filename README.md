@@ -1,8 +1,8 @@
 # Dispatch
 
 [![Build](https://img.shields.io/github/actions/workflow/status/StianLeRoux/Dispatch/dotnet.yml?branch=main)](https://github.com/StianLeRoux/Dispatch/actions)
-[![NuGet](https://img.shields.io/nuget/v/Dispatch.svg)](https://www.nuget.org/packages/Dispatch/)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/Dispatch.svg)](https://www.nuget.org/packages/Dispatch/)
+[![NuGet](https://img.shields.io/nuget/v/SLR.Dispatch.svg)](https://www.nuget.org/packages/SLR.Dispatch/)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/SLR.Dispatch.svg)](https://www.nuget.org/packages/SLR.Dispatch/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Dispatch is a lightweight CQRS-style dispatcher for .NET. It centralizes command, query, and notification handling, with optional pipeline behaviors and exception boundaries to keep handlers focused and resilient.
@@ -132,7 +132,48 @@ Design handlers to return meaningful values for success paths; use exception act
 
 ## .NET Targeting
 
-Latest .NET
+Targets .NET Standard 2.0, compatible with .NET Framework 4.6.1+ and .NET 10+
+
+## AI Instructions
+
+When working with the Dispatch library:
+
+### Core Concepts
+- **Dispatcher**: Central orchestrator for commands, queries, and notifications
+- **Commands**: Write operations implementing `ICommand<TResult>` with handlers `ICommandHandler<TCommand, TResult>`
+- **Queries**: Read operations implementing `IQuery<TResult>` with handlers `IQueryHandler<TQuery, TResult>`
+- **Notifications**: Fire-and-forget messages implementing `INotification` with handlers `INotificationHandler<TNotification>`
+
+### Registration
+Use `AddDispatcher()` in `Program.cs` or `Startup.cs`:
+```csharp
+builder.Services.AddDispatcher(cfg => 
+    cfg.RegisterServicesFromAssembly(typeof(YourHandler).Assembly));
+```
+
+### Pipeline Behaviors
+- Implement `IPipelineBehavior<TRequest, TResult>` for cross-cutting concerns (logging, validation, caching)
+- Executed in registration order before the handler
+- Wrap the `next()` delegate to control execution flow
+
+### Exception Handling
+- **Actions**: `IRequestExceptionAction<TRequest, TException>` for side effects (logging, metrics)
+- **Handlers**: `IRequestExceptionHandler<TRequest, TResult, TException>` to transform exceptions into results
+- Multiple actions execute; only one handler executes (by priority)
+- Priority based on: exact request type match → namespace proximity → generic handlers
+
+### Best Practices
+- Keep handlers focused on single responsibility
+- Use pipeline behaviors for cross-cutting concerns
+- Leverage exception handlers for domain-specific error translation
+- Return meaningful results instead of throwing exceptions when possible
+- Test handlers independently from pipeline behaviors
+
+### Package Information
+- **Package Name**: SLR.Dispatch
+- **Repository**: https://github.com/stianleroux/Dispatch
+- **Target Framework**: .NET Standard 2.0
+- **Key Dependencies**: Microsoft.Extensions.DependencyInjection, Scrutor, System.Text.Json
 
 ## Contributors
 

@@ -14,10 +14,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache NuGet packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/packages.lock.json') }}
@@ -25,7 +25,7 @@ jobs:
             nuget-${{ runner.os }}-
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
 
@@ -46,15 +46,18 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: write
     outputs:
       version: ${{ steps.get_base_version.outputs.version }}
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache NuGet packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
           key: nuget-${{ runner.os }}-${{ hashFiles('**/packages.lock.json') }}
@@ -62,7 +65,7 @@ jobs:
             nuget-${{ runner.os }}-
 
       - name: Setup .NET 10
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
 
@@ -88,8 +91,11 @@ jobs:
       - name: Pack NuGet Package
         run: dotnet pack Dispatch/Dispatch.csproj --configuration Release --no-build --output ./nuget-packages /p:PackageVersion=${{ env.PACKAGE_VERSION }}
 
-      - name: Push NuGet Package
+      - name: Push to NuGet.org
         run: dotnet nuget push nuget-packages/*.nupkg --skip-duplicate --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
+
+      - name: Push to GitHub Packages
+        run: dotnet nuget push nuget-packages/*.nupkg --skip-duplicate --source https://nuget.pkg.github.com/stianleroux/index.json --api-key ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload NuGet Package as Artifact
         uses: actions/upload-artifact@v4
@@ -107,11 +113,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Print version env var
-        run: echo "PACKAGE_VERSION=$PACKAGE_VERSION"
-        env:
-          PACKAGE_VERSION: ${{ env.PACKAGE_VERSION }}
-
       - name: Update apt and install dependencies
         run: |
           sudo apt-get update
@@ -125,7 +126,7 @@ jobs:
 
       - name: Generate release notes
         id: notes
-        uses: release-drafter/release-drafter@v5
+        uses: release-drafter/release-drafter@v6
         with:
           config-name: release-drafter.yml
         env:
@@ -133,18 +134,18 @@ jobs:
 
       - name: Create GitHub Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ needs.publish.outputs.version }}
-          release_name: Release ${{ needs.publish.outputs.version }}
+          tag: ${{ needs.publish.outputs.version }}
+          name: Release ${{ needs.publish.outputs.version }}
           body: |
             ## Changes in this release:
             - Auto-generated release based on latest commit
             - Version: ${{ needs.publish.outputs.version }}
+            - Published to NuGet.org and GitHub Packages
           draft: false
-          prerelease: ${{ startsWith(needs.publish.outputs.version, '1.') || contains(needs.publish.outputs.version, '-ci') }}
+          prerelease: ${{ startsWith(needs.publish.outputs.version, '0.') || contains(needs.publish.outputs.version, '-ci') }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get NuGet file path
         id: get_filename

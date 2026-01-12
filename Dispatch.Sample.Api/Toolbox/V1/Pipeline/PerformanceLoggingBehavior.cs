@@ -1,8 +1,8 @@
 namespace Dispatch.Sample.Api.Toolbox.V1.Pipeline;
 
+using System.Diagnostics;
 using Dispatch;
 using Microsoft.Extensions.Logging;
-using System.Diagnostics;
 
 /// <summary>
 /// Pipeline behavior that logs performance warnings when request execution exceeds 200ms.
@@ -31,18 +31,24 @@ public sealed class PerformanceLoggingBehavior<TRequest, TResult>(ILogger<Perfor
 
             if (elapsedMs > PerformanceThresholdMs)
             {
-                logger.LogWarning(
-                    "[Pipeline] Performance: {RequestName} took {ElapsedMs}ms (threshold: {ThresholdMs}ms)",
-                    requestName,
-                    elapsedMs,
-                    PerformanceThresholdMs);
+                if (logger.IsEnabled(LogLevel.Warning))
+                {
+                    logger.LogWarning(
+                        "[Pipeline] Performance: {RequestName} took {ElapsedMs}ms (threshold: {ThresholdMs}ms)",
+                        requestName,
+                        elapsedMs,
+                        PerformanceThresholdMs);
+                }
             }
             else
             {
-                logger.LogDebug(
-                    "[Pipeline] Performance: {RequestName} completed in {ElapsedMs}ms",
-                    requestName,
-                    elapsedMs);
+                if (logger.IsEnabled(LogLevel.Debug))
+                {
+                    logger.LogDebug(
+                        "[Pipeline] Performance: {RequestName} completed in {ElapsedMs}ms",
+                        requestName,
+                        elapsedMs);
+                }
             }
         }
     }
